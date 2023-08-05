@@ -1,0 +1,26 @@
+# comms
+aiohttp
+aiopurpleair
+
+# Debugging
+pudb
+ipython
+pytest
+
+# Database
+motor
+dnspython
+
+# Logging
+loguru
+pfmisc
+
+# Misc
+pydantic
+numpy
+scipy
+webob
+print-color
+matplotlib
+scipy
+
