@@ -83,6 +83,11 @@ package_CLIself = '''
         [--mongodbinit <init.json>]                                             \\
         [--man]                                                                 \\
         [--sensorDataGet <sensorRef>]                                           \\
+        [--fieldsList]                                                          \\
+        [fields <comma,separated,list>]                                         \\
+        [--asHistory | --asHistoryCSV]                                          \\
+        [--start_timestamp <%Y-%m-%d>]                                          \\
+        [--end_timestamp <%Y-%m-%d>]                                            \\
         [--sensorRefType sensor_index|sensor_id]                                \\
         [--sensorsAddFromFile <filename>]                                       \\
         [--sensorAddToGroup <sensorRef>]                                        \\
@@ -103,6 +108,22 @@ package_argSynopsisSelf = """
         [--sensorDataGet <sensorRef>]
         Get data for sensor <sensorRef>. This can either be a sensor index
         or a sensor ID. Set the ref type with --sensorRefType.
+
+        [--fieldsList]
+        If specified, print information about the fields can be passed to the
+        "fields" parameter.
+
+        [fields <comma,separated,list>]
+        A comma separated list of field data to retrieve.
+
+        [--asHistory | --asHistoryCSV]
+        If specified, do a "history" retrieve (optionally as CSV data)
+
+        [--start_timestamp <%Y-%m-%d>]
+        For a "history" retrieve, the start timestamp.
+
+        [--end_timestamp <%Y-%m-%d>]
+        For a "history" retrieve, the end timestamp.
 
         [--sensorRefType sensor_index|sensor_id]
         Set the specific reference "type" for sensors. This must be one of
@@ -413,7 +434,7 @@ class Persair:
                 str_fields  = f"fields={fields}"
             return str_fields
 
-        pudb.set_trace()
+        # pudb.set_trace()
         str_url:str         = f"https://api.purpleair.com/v1/sensors/{refsensor}"
         str_query:str       = "?" if len(fields) + len(history) else ""
         str_query          += history_formulateQuery(history) + fields_formulateQuery(fields)

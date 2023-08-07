@@ -8,17 +8,17 @@ Author-email: dev@babymri.org
 License: MIT
 License-File: LICENSE
 
-pfdicom_tagExtract
-==================
+persair
+=======
 
-.. image:: https://badge.fury.io/py/pfdicom_tagExtract.svg
-    :target: https://badge.fury.io/py/pfdicom_tagExtract
+.. image:: https://badge.fury.io/py/persair.svg
+    :target: https://badge.fury.io/py/persair
 
-.. image:: https://travis-ci.org/FNNDSC/pfdicom_tagExtract.svg?branch=master
-    :target: https://travis-ci.org/FNNDSC/pfdicom_tagExtract
+.. image:: https://travis-ci.org/FNNDSC/persair.svg?branch=master
+    :target: https://travis-ci.org/FNNDSC/persair
 
 .. image:: https://img.shields.io/badge/python-3.5%2B-blue.svg
-    :target: https://badge.fury.io/py/pfdicom_tagExtract
+    :target: https://badge.fury.io/py/persair
 
 .. contents:: Table of Contents
 
@@ -26,31 +26,19 @@ pfdicom_tagExtract
 Quick Overview
 --------------
 
--  ``pfdicom_tagExtract`` generates reports in various formats (txt, html, etc) based on parsing DICOM meta data (i.e. DICOM tags).
+-  ``persair`` is a python client (CLI and API) for retrieving data from sensors registered to the PurpleAir API.
 
 Overview
 --------
 
-``pfdicom_tagExtract`` extracts the header information of DICOM files and echoes to stdout as well as to an output report-type file -- this can be a raw output, a json-type output, or html-type output.
+``persair`` (the _pers_ is a play on the word _purple_) is a both a standalone script and a python module that provides the means to interact with the PurpleAir API and retrieve sensor information. Together with the app itself, this repo also provides a supporting ecosystem of a monogdb container that is used to persist data pulled from PurpleAir.
 
-The script accepts an ``<inputDir>``, and then from this point a recursive ``os.walk()``  is performed to probe all subdirs containing files to process. Each subdir is examined for DICOM files (in the simplest sense by a file extension mapping) and either the head, tail, middle (or other indexed) file is examined for its tag information.
+While the PurpleAir mission is to enable community driven science, accessing the API does carry a small monetary cost. Without commenting on that reality, ``persair`` provides the means to pull sensor data and archive them in a separate data base with easy/free access.
 
-Optionally, the tag list can be constrained either by passing a ``<tagFile>`` containing a line-by-line list of tags to query, or by passing a comma separated list of tags directly.
-
-Finally, an image conversion can also be performed (and embedded within the output html file, if an html conversion is specified).
+One of the use cases of ``persair`` is to scan a set of sensors and check if any are off-line (as indicated by the `last_seen` field for the sensor when queried in PurpleAir).
 
 Installation
 ------------
-
-Dependencies
-~~~~~~~~~~~~
-
-The following dependencies are installed on your host system/python3 virtual env (they will also be automatically installed if pulled from pypi):
-
--  ``pfmisc`` (various misc modules and classes for the pf* family of objects)
--  ``pftree`` (create a dictionary representation of a filesystem hierarchy)
--  ``pfdicom`` (handle underlying DICOM file reading)
--  ``matplotlib`` (handle saving / conversion to image formats for html reports)
 
 Using ``PyPI``
 ~~~~~~~~~~~~~~
@@ -60,190 +48,112 @@ by fetching it from PyPI
 
 .. code:: bash
 
-        pip3 install pfdicom_tagExtract
+        pip3 install persair
+
+Using CLI
+~~~~~~~~~
+
+Alternatively, from a cloned version of the repository:
+
+.. code:: bash
+
+        pip3 install -r requirements.txt -U ./
+
+
+Running
+-------
+
+Ecosystem
+~~~~~~~~~
+
+Assuming you have `docker` and `docker-compose` on your system, do
+
+.. code:: bash
+
+    docker-compose up -d
+
+Environment
+~~~~~~~~~~~
+
+Several environment variables need to be set prior to running ``persair``:
+
+.. code:: bash
+
+    export DB=tanguro && export DBauthPath=/home/dicom/services/pfair.json &&\
+    export URI=mongodb://localhost:27017 && export ReadWriteKey=tanguro
+
 
 Command line arguments
 ----------------------
 
 .. code:: html
 
-        --inputDir <inputDir>
-        Input directory to examine. The downstream nested structure of this
-        directory is examined and recreated in the <outputDir>.
+        [--mongodbinit <init.json>]
+        The mongodb initialization file.
 
-        [--outputDir <outputDir>]
-        The directory to contain a tree structure identical to the input
-        tree structure, and which contains all output files from the
-        per-input-dir processing.
-
-        [--outputFileStem <stem>]
-        An output file stem pattern to use
-
-
-        [--maxdepth <dirDepth>]
-        The maximum depth to descend relative to the <inputDir>. Note, that
-        this counts from zero! Default of '-1' implies transverse the entire
-        directory tree.
-
-        [--relativeDir]
-        A flag argument. If passed (i.e. True), then the dictionary key values
-        are taken to be relative to the <inputDir>, i.e. the key values
-        will not contain the <inputDir>; otherwise the key values will
-        contain the <inputDir>.
-
-        [--inputFile <inputFile>]
-        An optional <inputFile> specified relative to the <inputDir>. If
-        specified, then do not perform a directory walk, but target this
-        specific file.
-
-        [--fileFilter <someFilter1,someFilter2,...>]
-        An optional comma-delimated string to filter out files of interest
-        from the <inputDir> tree. Each token in the expression is applied in
-        turn over the space of files in a directory location according to a
-        logical operation, and only files that contain this token string in
-        their filename are preserved.
-
-        [--filteFilterLogic AND|OR]
-        The logical operator to apply across the fileFilter operation. Default
-        is OR.
-
-        [--dirFilter <someFilter1,someFilter2,...>]
-        An additional filter that will further limit any files to process to
-        only those files that exist in leaf directory nodes that have some
-        substring of each of the comma separated <someFilter> in their
-        directory name.
-
-        [--dirFilterLogic AND|OR]
-        The logical operator to apply across the dirFilter operation. Default
-        is OR.
-
-        [--outputLeafDir <outputLeafDirFormat>]
-        If specified, will apply the <outputLeafDirFormat> to the output
-        directories containing data. This is useful to blanket describe
-        final output directories with some descriptive text, such as
-        'anon' or 'preview'.
-
-        This is a formatting spec, so
-
-            --outputLeafDir 'preview-%%s'
-
-        where %%s is the original leaf directory node, will prefix each
-        final directory containing output with the text 'preview-' which
-        can be useful in describing some features of the output set.
-
-        [--threads <numThreads>]
-        If specified, break the innermost analysis loop into <numThreads>
-        threads. Please note the following caveats:
-
-            * Only thread if you have a high CPU analysis loop. Note that
-              the input file read and output file write loops are not
-              threaded -- only the analysis loop is threaded. Thus, if the
-              bulk of execution time is in file IO, threading will not
-              really help.
-
-            * Threading will change the nature of the innermost looping
-              across the problem domain, with the result that *all* of the
-              problem data will be read into memory! That means potentially
-              all the target input file data across the entire input directory
-              tree.
-
-        [--json]
-        If specified, do a JSON dump of the entire return payload.
-
-        [--followLinks]
-        If specified, follow symbolic links.
-
-        [--overwrite]
-        If specified, allow for overwriting of existing files
+        [--version]
+        If specified, print app name/version.
 
         [--man]
-        Show full help.
+        If specified, print this help/man page.
 
-        [--synopsis]
-        Show brief help.
+        [--sensorDataGet <sensorRef>]
+        Get data for sensor <sensorRef>. This can either be a sensor index
+        or a sensor ID. Set the ref type with --sensorRefType.
 
-        [--verbosity <level>]
-        Set the app verbosity level. This ranges from 0...<N> where internal
-        log messages with a level=<M> will only display if M <= N. In this
-        manner increasing the level here can be used to show more and more
-        debugging info, assuming that debug messages in the code have been
-        tagged with a level.
+        [--fieldsList]
+        If specified, print information about the fields can be passed to the
+        "fields" parameter.
 
-        [-p|--printToScreen]
-        If specified, will print tags to screen.
+        [fields <comma,separated,list>]
+        A comma separated list of field data to retrieve.
 
-        [--tagFile <tagFile>]
-        Read the tags, one-per-line in <tagFile>, and print the
-        corresponding tag information in the DICOM <inputFile>.
+        [--asHistory | --asHistoryCSV]
+        If specified, do a "history" retrieve (optionally as CSV data)
 
-        [--tagList <tagList>]
-        Read the list of comma-separated tags in <tagList>, and print the
-        corresponding tag information parsed from the DICOM <inputFile>.
+        [--start_timestamp <%Y-%m-%d>]
+        For a "history" retrieve, the start timestamp.
 
-        [--image <[<index>:]imageFile>]
-        If specified, also convert the <inputFile> to <imageFile>. If the
-        name is preceded by an index and colon, then convert this indexed
-        file in the particular <inputDir>.
+        [--end_timestamp <%Y-%m-%d>]
+        For a "history" retrieve, the end timestamp.
 
-        [--imageScale <factor>[:<interpolation>]]
-        If an image conversion is specified, this flag will scale the image
-        by <factor> and use an interpolation <order>. This is useful in
-        increasing the size of images for the html output.
+        [--sensorRefType sensor_index|sensor_id]
+        Set the specific reference "type" for sensors. This must be one of
+        either 'sensor_id' or 'sensor_index'. Default is 'sensor_index'.
 
-        Note that certain interpolation choices can result in a significant
-        slowdown!
+        [--sensorAddToGroup <sensorRef>]
+        Add the sensor referenced by <sensorRef> to a group. The group is
+        additionally specified with the --usingGroupID CLI.
 
-            interpolation order:
+        [--sensorsAddFromFile <filename>]
+        Add all sensors referenced in <filename> to the group defined by
+        --usingGroupID. References in the <filename> should only contain
+        a single sensor per line.
 
-            'none', 'nearest', 'bilinear', 'bicubic', 'spline16',
-            'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
-            'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos'
+        [--sensorsInGroupList <groupid>]
+        List all sensors in <groupid>.
 
-        [--outputFileType <outputFileType>]
-        A comma specified list of output types. These can be:
-
-            o <type>    <ext>       <desc>
-            o raw       -raw.txt    the raw internal dcm structure to string
-            o json      .json       a json representation
-            o html      .html       an html representation with optional image
-            o dict      -dict.txt   a python dictionary
-            o col       -col.txt    a two-column text representation (tab sep)
-            o csv       .csv        a csv representation
-
-        Note that if not specified, a default type of 'raw' is assigned.
-
-        [--useIndexhtml]
-        If specified, force the name of any output html reports to be
-        'index.html'.
+        [--usingGroupID <groupid>]
+        CLI for additionally specifying a <groupid> to use in conjunction
+        with several sensor operations.
 
 Examples
 --------
 
-    Extract DICOM header info down an input tree and save reports
-    to output tree:
+    List all the sensor indices in a group:
 
-        pfdicom_tagExtract                                                      \
-                --inputDir /var/www/html/normsmall                              \
-                --fileFilter dcm                                                \
-                --outputDir /var/www/html/tag                                   \
-                --outputFileStem '%_md5|6_PatientID-%PatientAge'                \
-                --imageFile 'm:%_md5|6_PatientID-%PatientAge.jpg'               \
-                --outputFileType raw,json,html,dict,col,csv                     \
-                --imageScale 3:none                                             \
-                --useIndexhtml                                                  \
-                --outputFileType raw,json,html,dict,col,csv                     \
-                --threads 0 --verbosity 1
+        persair --sensorsInGroupList --usingGroupID 1700
 
-    will process only the "middle" DICOM file (dcm) in each series directory
-    down the tree /var/www/html/normsmall, producing a jpg image of the DICOM
-    as well as a series of output report formats with progressive results
-    shown in the terminal. Use a --json flag to get only JSON results.
+    Get (all) the data for a given sensor (note this carries an actual _cost_ in tokens which if exhausted need to be topped off/purchased):
 
-    The script can also be instructed to not process files into outputs, but to
-    only print the DICOM tag information to screen of a given DICOM file
-    <DCMfile>:
+        persair --sensorDataGet 103270
 
-        pfdicom_tagExtract                                                      \
-            --verbosity 0 --inputDir ./  --printToScreen                        \
-            --inputFile <DCMfile>
+    Get only some fields for a given sensor:
+
+        persair --sensorDataGet 103270 --fields temperature,last_seen,latitude,longitude
+
+    Get some historical data for a give sensor:
+
+        persair --sensorDataGet 103270 --fields temperature \
+                --asHistoryCSV --start_timestamp 2023-06-01 --end_timestamp 2023-06-02
 
