@@ -434,7 +434,7 @@ class Persair:
                 str_fields  = f"fields={fields}"
             return str_fields
 
-        pudb.set_trace()
+        # pudb.set_trace()
         str_url:str         = f"https://api.purpleair.com/v1/sensors/{refsensor}"
         str_query:str       = "?" if len(fields) + len(history) else ""
         str_query          += history_formulateQuery(history) + fields_formulateQuery(fields)
