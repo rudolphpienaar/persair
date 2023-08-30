@@ -1,5 +1,5 @@
 import  os
-from    pydantic    import BaseSettings
+from    pydantic_settings  import BaseSettings
 
 class Keys(BaseSettings):
     DBauthPath:str      = '/db/init.json'
