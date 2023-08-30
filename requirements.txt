@@ -17,6 +17,7 @@ pfmisc
 
 # Misc
 pydantic
+pydantic_settings
 numpy
 scipy
 webob
