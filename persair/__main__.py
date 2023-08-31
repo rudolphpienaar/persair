@@ -7,11 +7,12 @@
 #                        dev@babyMRI.org
 #
 
-__version__ = "2.2.0"
+__version__ = "2.2.2"
 
 import sys, os
 
 from    persair             import persair
+from    persair.persair     import parser_setup, parser_interpret, parser_JSONinterpret
 
 try:
     from    .               import __pkg, __version__
@@ -93,27 +94,21 @@ def earlyExit_check(args:Namespace) -> int:
         return 1
     return 0
 
-parser:ArgumentParser   = persair.parser_setup(persair.description)
-pargs: Namespace        = persair.parser_interpret(parser)
-
-def main(*args) -> Literal[1, 0]:
+def main(argv=None) -> Literal[1, 0]:
 
     # pudb.set_trace()
     # Preliminary setup
-    if not args:
-        argsToPass:Namespace                = pargs
-    else:
-        argsToPass:Namespace                = args[0]
-    if earlyExit_check(argsToPass): return 1
+    parser:ArgumentParser       = parser_setup('A client for interacting with PurpleAir')
+    options:Namespace           = parser_interpret(parser, argv)
+    if earlyExit_check(options): return 1
 
-    # Do something
-    d_persair:dict          = {}
-    sensors:persair.Persair = persair.Persair(argsToPass)
+    # Setup the persair sensor object
+    sensors:persair.Persair = persair.Persair(options)
 
+    # and run it!
     loop:AbstractEventLoop  = asyncio.get_event_loop()
     loop.run_until_complete(sensors.service())
 
-    # d_response:dict              = asyncio.run(sensors.service())
     print(sensors.responseData.json())
 
     return 0
