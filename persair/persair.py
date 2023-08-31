@@ -300,8 +300,8 @@ class Persair:
 
         # attach a comms API to the mongo db
         self.dbAPI:pfdb.PFdb_mongo  = pfdb.PFdb_mongo(settings.keys, settings.mongosettings)
-        self.headersRead:dict       = {"X-API-Key": self.dbAPI.keys['ReadKey']}
-        self.headersWrite:dict      = {"X-API-Key": self.dbAPI.keys['WriteKey']}
+        self.headersRead:dict       = {"X-API-Key": self.dbAPI.key_get('ReadKey')}
+        self.headersWrite:dict      = {"X-API-Key": self.dbAPI.key_get('WriteKey')}
 
         # an aiohttp session
         self._session               = aiohttp.ClientSession()
