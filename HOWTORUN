@@ -17,13 +17,15 @@ docker build --build-arg UID=$UID -t local/persair .
 docker-compose up
 
 # Run persair (with support for source debugging)
-docker run --rm -it --name persair                              \
-        --network persair_pfair                                 \
-        -e ReadWriteKey=tanguro                                 \
-        -e DB=tanguro                                           \
-        -e DBauthPath=/home/dicom/services/pfair.json           \
-        -e URI=mongodb://pfair-db:27017                         \
-        -v /home/dicom:/home/dicom                              \
-        -v $PWD/persair:/usr/local/lib/python3.11/site-packages/persair  \
+docker run --rm -it --name persair                                              \
+        --network persair_pfair                                                 \
+        -e ReadWriteKey=tanguro                                                 \
+        -e MD_DB=tanguro                                                        \
+        -e DBauthPath=/home/dicom/services/pfair.json                           \
+        -e MD_URI=mongodb://pfair-db:27017                                      \
+        -e MD_username=admin                                                    \
+        -e MD_password=admin                                                    \
+        -v /home/dicom:/home/dicom                                              \
+        -v $PWD/persair:/usr/local/lib/python3.11/site-packages/persair         \
         local/persair persair
 
