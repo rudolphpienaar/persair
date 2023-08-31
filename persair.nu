@@ -54,32 +54,32 @@ def sensors_list_inGroup [
     return $sensors
 }
 
-# Determine the number of days since a sensor was last seen
-def sensor_last_seen_in_days [
-    idx:int 	# The sensor index to query
-] {
-    let dist = ((date now) - (sensor_last_seen $idx)  | into duration --convert day | parse '{days} {unit}' | get days | into decimal)
-    return ($dist.0)
-}
-
-# Generate a list for all sensors in a group with the number
-# of days last seen
-def sensors_list_last_seen_in_days [
-    group:int	# The group ID
-] {
-    sensors_list_inGroup 1700 | get sensor_index  | each { |it| print $"($it): (sensor_last_seen_in_days $it)" }
-}
-
-# Return a true/false on a sensor index given a day count.
-# If true, the sensor has not checked in since the last day count
-# If false, the sensor has checked in
-def sensor_last_seen_more_than [
-    idx:int,	# Sensor index
-    days:float	# days ago cutoff
-] {
-    if (sensor_last_seen_in_days $idx) > $days {
-        return true
-    } else {
-    	return false
-    }
-}
+## Determine the number of days since a sensor was last seen
+#def sensor_last_seen_in_days [
+#    idx:int 	# The sensor index to query
+#] {
+#    let dist = ((date now) - (sensor_last_seen $idx)  | into duration --convert day | parse '{days} {unit}' | get days | into decimal)
+#    return ($dist.0)
+#}
+#
+## Generate a list for all sensors in a group with the number
+## of days last seen
+#def sensors_list_last_seen_in_days [
+#    group:int	# The group ID
+#] {
+#    sensors_list_inGroup 1700 | get sensor_index  | each { |it| print $"($it): (sensor_last_seen_in_days $it)" }
+#}
+#
+## Return a true/false on a sensor index given a day count.
+## If true, the sensor has not checked in since the last day count
+## If false, the sensor has checked in
+#def sensor_last_seen_more_than [
+#    idx:int,	# Sensor index
+#    days:float	# days ago cutoff
+#] {
+#    if (sensor_last_seen_in_days $idx) > $days {
+#        return true
+#    } else {
+#    	return false
+#    }
+#}
