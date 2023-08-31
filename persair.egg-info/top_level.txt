@@ -1,4 +1,0 @@
-persair
-persair/config
-persair/lib
-persair/models
