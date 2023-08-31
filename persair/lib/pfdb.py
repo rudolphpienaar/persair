@@ -1,5 +1,5 @@
-from    math                import dist
-from    typing              import Any, List, TypedDict, Collection
+from os import write
+from    typing              import Any, List, TypedDict
 from    pydantic            import BaseModel, Field
 
 import  json
@@ -9,14 +9,15 @@ from    pathlib             import Path
 try:
     from    config              import settings
 except:
-    from    persair.config      import settings
-
+    from    ..config             import settings
 import  sys
 import  shutil
 import  pudb
 
+import  pymongo
 from    pymongo             import MongoClient
 from    pymongo.database    import Database
+from    pymongo.collection  import Collection
 
 class PFdb_mongo():
     """
@@ -61,7 +62,7 @@ class PFdb_mongo():
                 d_keys['message']   = f'Could not interpret key file {self.keyInitPath}.'
         return d_keys
 
-    def Mongo_connectDB(self, DBname:str) -> dict[str, bool | Database[Any]]:
+    def Mongo_connectDB(self, DBname:str) -> dict:
         """
         Connect / create the DB.
 
@@ -72,54 +73,80 @@ class PFdb_mongo():
             dict[str, bool | Database[Any]]: DB -- the database
                                              bool -- False if DB is not yet created
         """
-        b_status:bool       = True
-        DB: Database[Any]   = self.Mongo[DBname]
         d_ret:dict  = {
-            'status':   b_status,
-            'DB':       DB
+            'status':   True if DBname in self.Mongo.list_database_names() else False,
+            'DB':       self.Mongo[DBname]
         }
-        l_dbnames: List[str]   = self.Mongo.list_database_names()
-        if DBname not in l_dbnames:
-            d_ret['status'] = False
         return d_ret
 
-    def Mongo_connectCollection(self, mongocollection:str) -> dict[str, bool | Collection[Any]]:
-        l_collections:list          = self.DB.list_collection_names()
-        b_status:bool               = True
-        collection: Collection[Any] = self.DB[mongocollection]
+    def Mongo_connectCollection(self, mongocollection:str) -> dict:
+        """
+        Simply connect to a named "collection" in a mongoDB and return
+        the collection and its status.
+
+        :param mongocollection: the name of the collection
+        :return: a dictionary with the collection and a status
+        """
         d_ret:dict  = {
-            'status':       b_status,
-            'collection':   collection
+            'status':       True if mongocollection in self.DB.list_collection_names() else False,
+            'collection':   self.DB[mongocollection]
         }
-        if mongocollection not in l_collections:
-            d_ret['status']     = False
         return d_ret
 
-    def readwriteKeys_inCollectionGet(self, d_readwrite:dict, collectionExists:bool):
+    def readwriteKeys_inCollectionGet(
+            self,
+            d_readwrite:dict,
+            collectionExists:bool
+    ) -> dict|None:
         if not collectionExists:
             self.collection.insert_one(d_readwrite['init']['keys'])
         d_collectionData    = self.collection.find_one({'readwritekeys': d_readwrite['keyName']})
         return d_collectionData
 
-    def __init__(self, settingsKeys: settings.Keys, settingsMongo: settings.Mongo) -> None:
-        # pudb.set_trace()
-        self.keyInitPath    = Path(settingsKeys.DBauthPath)
-        self.Mongo          = MongoClient(settingsMongo.URI)
+    def key_get(self, name:str) -> dict:
+        """
+        Get an access "key" from the main class. This explictly returns a
+        dictionary since the self.key member variable can be either dict or
+        None which can be flagged by the LSP.
 
-        # Read the API read/write keys from self.keyInitPath and ReadWriteKey collection
+        :param name: the key "name" to lookup
+        :return: a dictionary containing the key value (or an error dictionary)
+        """
+        ret:dict    = {
+                "error": f"key {name} not found"
+        }
+        if self.keys:
+            if name in self.keys:
+                ret = self.keys[name]
+        return ret
+
+    def __init__(self,
+                 settingsKeys: settings.Keys,
+                 settingsMongo: settings.Mongo) -> None:
+        """
+        Main database constructor.
+
+        :param settingsKeys: a collection of default configuration settings
+        :param settingsMongo: a collection of settings relevant to the mongoBD
+        :return: the object
+        """
+
+        self.keyInitPath        = Path(settingsKeys.DBauthPath)
+        self.Mongo              = MongoClient(settingsMongo.MD_URI,
+                                              username  = settingsMongo.MD_username,
+                                              password  = settingsMongo.MD_password)
+
+        # Read the API read/write keys from self.keyInitPath
+        # and ReadWriteKey collection
         # --- this is used only to instantiate the keys in the monogoDB
         d_readwrite: dict[str, bool | str | dict[Any, Any]] = \
             self.APIkeys_readFromFile(settingsKeys.ReadWriteKey)
 
         # Connect to the DB
-        d_connectDB: dict[str, bool | Database[Any]]  = \
-            self.Mongo_connectDB(settingsMongo.DB)
-        self.DB: Database[Any] = d_connectDB['DB']
+        self.DB:Database[Any]               = self.Mongo_connectDB(settingsMongo.MD_DB)['DB']
 
         # Connect to the collection
-        d_collection: dict[str, bool | Collection[Any]] = \
-            self.Mongo_connectCollection('sensors')
-        self.collection: Collection[Any]     = d_collection['collection']
-
+        d_collection:dict                   = self.Mongo_connectCollection('sensors')
+        self.collection:Collection[Any]     = d_collection['collection']
         self.keys = self.readwriteKeys_inCollectionGet(d_readwrite, d_collection['status'])
 
