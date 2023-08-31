@@ -288,15 +288,13 @@ class Persair:
 
     """
 
-    def __init__(self, args:Namespace, **kwargs) -> None:
-        """
-        The constructor for the tagExtractor, with specializations over the
-        base pfdicom class.
-        """
-        # pudb.set_trace()
+    def  __init__(self, args, **kwargs) -> None:
 
-        # Capture the args namespace
-        self.args:Namespace         = args
+        if type(args) is dict:
+            parser:ArgumentParser           = parser_setup('Setup client using dict')
+            options:Namespace               = parser_JSONinterpret(parser, args)
+        if type(args) is Namespace:
+            self.args:Namespace             = args
 
         # attach a comms API to the mongo db
         self.dbAPI:pfdb.PFdb_mongo  = pfdb.PFdb_mongo(settings.keys, settings.mongosettings)
