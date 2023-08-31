@@ -1,6 +1,5 @@
 # comms
 aiohttp
-aiopurpleair
 
 # Debugging
 pudb
@@ -16,7 +15,7 @@ loguru
 pfmisc
 
 # Misc
-pydantic
+pydantic>=2.3.0
 pydantic_settings
 numpy
 scipy
