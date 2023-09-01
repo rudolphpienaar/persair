@@ -11,6 +11,5 @@ class Mongo(BaseSettings):
     MD_username:str     = "username"
     MD_password:str     = "password"
 
-
 keys            = Keys()
 mongosettings   = Mongo()

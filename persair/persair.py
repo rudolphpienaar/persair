@@ -293,6 +293,7 @@ class Persair:
         if type(args) is dict:
             parser:ArgumentParser           = parser_setup('Setup client using dict')
             options:Namespace               = parser_JSONinterpret(parser, args)
+            self.args:Namespace             = options
         if type(args) is Namespace:
             self.args:Namespace             = args
 
