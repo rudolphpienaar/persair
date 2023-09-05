@@ -6,10 +6,10 @@ services:
   #   container_name: pfair
   #   restart: unless-stopped
   #   environment:
-  #     ReadWriteKey: tangoru
-  #     DB: tangoru
+  #     MD_ReadWriteKey: tanguro
+  #     MD_DB: tanguro
   #     DBauthPath: /home/dicom/services/pfair.json
-  #     pfair_MONGODB: mongodb://pfair-db:27017
+  #     MD_URI: mongodb://pfair-db:27017
   #   ports:
   #     - "55553:55553"
   #   networks:
