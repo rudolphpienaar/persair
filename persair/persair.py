@@ -24,6 +24,8 @@ from        argparse            import  Namespace, ArgumentParser
 from        argparse            import  RawTextHelpFormatter
 from        loguru              import  logger
 
+from        pfmisc              import  Colors as C
+
 from        pathlib             import  Path
 
 import      pudb
@@ -32,11 +34,9 @@ from        pydantic            import HttpUrl
 
 try:
     from        config          import settings
-    from        lib             import pfdb
     from        models          import sensorModel
 except:
     from        .config         import settings
-    from        .lib            import pfdb
     from        .models         import sensorModel
 
 
@@ -62,26 +62,29 @@ logger.remove()
 logger.add(sys.stderr, format=logger_format)
 
 
-description:str = """
+description:str = f"""
     DESCRIPTION
 
     `persair` is a client application for interacting with the purpleair API
     (https://api.purpleair.com) on behalf of a registered purple air users/
     organizations.
 
-    Unlike other python clients/libraries, this application is designed to work
-    with a mongodb that is used to persist any telemetry data that is pulled
-    from the purpleair API.
+    This is a relatively "simple" app with minimal dependencies and it mostly
+    used as means to access data in the purple air API from a command line.
 
-    The module provided by this application is also used by the fastAPI app
-    called `pfair` to modularize its interactions with the purpleair API
-    and monogodb.
+    Note that each call to the purple air API consumes "tokens" that carry an
+    actual monetary cost. Once all tokens are exhausted, new tokens need to be
+    purchased.
+
+    The companion `pfair` web-based API provides caching of data pulled from the
+    purple air API and is recommended for most cases.
 
 """
 
 package_CLIself = '''
-        [--mongodbinit <init.json>]                                             \\
-        [--man]                                                                 \\
+        [--keyStore <key.json>]                                                 \\
+        [--readKey <readkey>]                                                   \\
+        [--writeKey <writekey>]                                                 \\
         [--sensorDataGet <sensorRef>]                                           \\
         [--fieldsList]                                                          \\
         [fields <comma,separated,list>]                                         \\
@@ -93,17 +96,23 @@ package_CLIself = '''
         [--sensorAddToGroup <sensorRef>]                                        \\
         [--sensorsInGroupList <groupid>]                                        \\
         [--usingGroupID <groupid>]                                              \\
+        [--man]                                                                 \\
         [--version]'''
 
-package_argSynopsisSelf = """
-        [--mongodbinit <init.json>]
-        The mongodb initialization file.
+package_argSynopsisSelf = f"""
+        [--keyStore <key.json>]
+        A json key store file that contains both the read and write keys for the
+        purple air API. If used, the --readKey and --writeKey are supefluous.
 
-        [--version]
-        If specified, print app name/version.
+        [--projectName <projectName>]
+        The name of the project in the keyStore (the keyStore can contain many
+        key pairs, organized by project).
 
-        [--man]
-        If specified, print this help/man page.
+        [--readKey <readkey>]
+        The key to read from the purple air API.
+
+        [--writeKey <writekey>]
+        The key to write to the purple air API.
 
         [--sensorDataGet <sensorRef>]
         Get data for sensor <sensorRef>. This can either be a sensor index
@@ -145,6 +154,12 @@ package_argSynopsisSelf = """
         CLI for additionally specifying a <groupid> to use in conjunction
         with several sensor operations.
 
+        [--version]
+        If specified, print app name/version.
+
+        [--man]
+        If specified, print this help/man page.
+
 """
 
 package_CLIfull             = package_CLIself
@@ -159,22 +174,25 @@ def parser_setup(desc:str, add_help:bool = True) -> ArgumentParser:
                 add_help            = add_help
             )
 
-    parserSelf.add_argument("--monogdbinit",
-                    help    = "JSON formatted file containing mongodb initialization",
-                    dest    = 'mongodbinit',
+    parserSelf.add_argument("--keyStore",
+                    help    = "JSON formatted file containing read and write keys",
+                    dest    = 'keyStore',
                     default = '')
 
-    parserSelf.add_argument("--version",
-                    help    = "print name and version",
-                    dest    = 'b_version',
-                    default = False,
-                    action  = 'store_true')
+    parserSelf.add_argument("--projectName",
+                    help    = "The project name in the keyStore",
+                    dest    = 'projectName',
+                    default = '')
 
-    parserSelf.add_argument("--man",
-                    help    = "print man page",
-                    dest    = 'man',
-                    default = False,
-                    action  = 'store_true')
+    parserSelf.add_argument("--readKey",
+                    help    = "key to read from the purple air API",
+                    dest    = 'readKey',
+                    default = '')
+
+    parserSelf.add_argument("--writeKey",
+                    help    = "key to write to the purple air API",
+                    dest    = 'writeKey',
+                    default = '')
 
     parserSelf.add_argument("--sensorDataGet",
                     help    = "get data for the passed sensor ID",
@@ -240,6 +258,17 @@ def parser_setup(desc:str, add_help:bool = True) -> ArgumentParser:
                     dest    = 'endTimestamp',
                     default = '')
 
+    parserSelf.add_argument("--version",
+                    help    = "print name and version",
+                    dest    = 'b_version',
+                    default = False,
+                    action  = 'store_true')
+
+    parserSelf.add_argument("--man",
+                    help    = "print man page",
+                    dest    = 'man',
+                    default = False,
+                    action  = 'store_true')
 
     return parserSelf
 
@@ -290,6 +319,7 @@ class Persair:
 
     def  __init__(self, args, **kwargs) -> None:
 
+        self.args:Namespace                 = Namespace()
         if type(args) is dict:
             parser:ArgumentParser           = parser_setup('Setup client using dict')
             options:Namespace               = parser_JSONinterpret(parser, args)
@@ -297,22 +327,96 @@ class Persair:
         if type(args) is Namespace:
             self.args:Namespace             = args
 
-        # attach a comms API to the mongo db
-        self.dbAPI:pfdb.PFdb_mongo  = pfdb.PFdb_mongo(settings.keys, settings.mongosettings)
-        self.headersRead:dict       = {"X-API-Key": self.dbAPI.key_get('ReadKey')}
-        self.headersWrite:dict      = {"X-API-Key": self.dbAPI.key_get('WriteKey')}
+        # get the read and write keys:
+        d_APIaccess:dict            = self.readWrite_keysDefine()
+        if not d_APIaccess['status']:
+            self.exit_withMessage("Key define error!", 2, 'error')
+        self.headersRead:dict       = {"X-API-Key": d_APIaccess['keys']['ReadKey']}
+        self.headersWrite:dict      = {"X-API-Key": d_APIaccess['keys']['WriteKey']}
 
         # an aiohttp session
         self._session               = aiohttp.ClientSession()
         self.responseData:sensorModel.persairResponse   = sensorModel.persairResponse()
 
+    def APIkeys_readFromFile(self) \
+        -> dict[str, bool | str | dict[str, dict[Any, Any]]]:
+        """
+        Read a read/write key pair from a named <projectName> in
+        the <keyStore> file (if it exists).
+
+        Return
+            dict[str, bool | dict[Any, Any]]: The Read/Write key pair with
+                                              bool 'status'
+        """
+        d_keys:dict     =   {
+            'status'        : False,
+            'message'       : f'{self.args.keyStore} file not found.',
+            'keys'          : {
+                'ReadKey'   :   "",
+                'WriteKey'  :   ""
+            },
+            'projectName'   : self.args.projectName
+        }
+        d_data:dict     = {}
+        keyStore:Path   = Path(self.args.keyStore)
+        if not keyStore.is_file():
+            return d_keys
+        with open(str(self.args.keyStore), 'r') as f:
+            try:
+                d_data:dict = json.load(f)
+                if self.args.projectName in d_data:
+                    d_data[self.args.projectName]['readwritekeys']  = \
+                            self.args.projectName
+                    d_keys['status']        = True
+                    d_keys['keys']          = d_data[self.args.projectName]
+                    d_keys['message']       = f'"{self.args.projectName}" loaded.'
+                else:
+                    d_keys['message']       = \
+                        f'KeyStore does not have <projectName> {self.args.projectName}.'
+            except:
+                d_keys['message']           = \
+                        f'Could not interpret key file {self.args.keyStore}.'
+        return d_keys
+
+    def readWrite_keysDefine(self) -> dict:
+        d_APIaccess:dict  = {
+                'status'    : False,
+                'keys'      : {
+                    'ReadKey'   : "",
+                    'WriteKey'  : ""
+                }
+        }
+        if self.args.keyStore and self.args.projectName:
+            d_APIaccess = self.APIkeys_readFromFile()
+        if self.args.readKey:
+            d_APIaccess['keys']['ReadKey']  = self.args.readKey
+        if self.args.writeKey:
+            d_APIaccess['keys']['WriteKey'] = self.args.readKey
+        if settings.keys.ReadKey:
+            d_APIaccess['keys']['ReadKey']  = settings.keys.ReadKey
+        if settings.keys.WriteKey:
+            d_APIaccess['keys']['WriteKey'] = settings.keys.WriteKey
+
+        if d_APIaccess['keys']['ReadKey'] and d_APIaccess['keys']['WriteKey']:
+            d_APIaccess['status']           = True
+        return d_APIaccess
+
+    def exit_withMessage(self, message:str, code:int = 0, exitType:str = 'error') -> None:
+        header:str  = ""
+        match(exitType):
+            case 'error':
+                header  = f"{C.RED}ERROR!{C.NO_COLOUR}"
+        print(header)
+        print(message)
+        sys.exit(code)
+
     def sensorFields_print(self):
-        str_fieldInfo:str           = '''
+        str_fieldInfo:str           =  f"""
 
         The 'Fields' parameter specifies which 'sensor data fields' to include in the response.
         It is a comma separated list with one or more of the following:
 
-        Station information and status fields:
+        {C.CYAN}Station information and status fields:{C.NO_COLOUR}
         name,             private,           firmware_version,     firmware_upgrade,
         icon,             model,             hardware,             led_brightness
         location_type,    altitude           latitude,             longitude,
@@ -321,26 +425,26 @@ class Persair:
         channel_state,    channel_flags,     channel_flags_manual, channel_flags_auto,
         confidence,       confidence_manual, confidence_auto
 
-        Environmental fields:
+        {C.CYAN}Environmental fields:{C.NO_COLOUR}
         humidity,    humidity_a,    humidity_b,
         temperature, temperature_a, temperature_b,
         pressure,    pressure_a,    pressure_b
 
-        Miscellaneous fields:
+        {C.CYAN}Miscellaneous fields:{C.NO_COLOUR}
         voc, voc_a, voc_b, ozone1, analog_input
 
-        PM1.0 fields:
+        {C.CYAN}PM1.0 fields:{C.NO_COLOUR}
         pm1.0,      pm1.0_a,      pm1.0_b,
         pm1.0_atm,  pm1.0_atm_a,  pm1.0_atm_b,
         pm1.0_cf_1, pm1.0_cf_1_a, pm1.0_cf_1_b
 
-        PM2.5 fields:
+        {C.CYAN}PM2.5 fields:{C.NO_COLOUR}
         pm2.5_alt,  pm2.5_alt_a,  pm2.5_alt_b,
         pm2.5,      pm2.5_a,      pm2.5_b,
         pm2.5_atm,  pm2.5_atm_a,  pm2.5_atm_b,
         pm2.5_cf_1, pm2.5_cf_1_a, pm2.5_cf_1_b
 
-        PM2.5 pseudo (simple running) average fields:
+        {C.CYAN}PM2.5 pseudo (simple running) average fields:{C.NO_COLOUR}
         pm2.5_10minute, pm2.5_10minute_a, pm2.5_10minute_b,
         pm2.5_30minute, pm2.5_30minute_a, pm2.5_30minute_b,
         pm2.5_60minute, pm2.5_60minute_a, pm2.5_60minute_b,
@@ -348,12 +452,12 @@ class Persair:
         pm2.5_24hour,   pm2.5_24hour_a,   pm2.5_24hour_b,
         pm2.5_1week,    pm2.5_1week_a,    pm2.5_1week_b
 
-        PM10.0 fields:
+        {C.CYAN}PM10.0 fields:{C.NO_COLOUR}
         pm10.0,      pm10.0_a,      pm10.0_b,
         pm10.0_atm,  pm10.0_atm_a,  pm10.0_atm_b,
         pm10.0_cf_1, pm10.0_cf_1_a, pm10.0_cf_1_b
 
-        Particle count fields:
+        {C.CYAN}Particle count fields:{C.NO_COLOUR}
          0.3_um_count,  0.3_um_count_a,  0.3_um_count_b,
          0.5_um_count,  0.5_um_count_a,  0.5_um_count_b,
          1.0_um_count,  1.0_um_count_a,  1.0_um_count_b,
@@ -361,14 +465,16 @@ class Persair:
          5.0_um_count,  5.0_um_count_a,  5.0_um_count_b,
         10.0_um_count, 10.0_um_count_a, 10.0_um_count_b
 
-        ThingSpeak fields, used to retrieve data from api.thingspeak.com:
+        {C.CYAN}ThingSpeak fields, used to retrieve data from
+        api.thingspeak.com:{C.NO_COLOUR}
           primary_id_a,   primary_key_a,
         secondary_id_a, secondary_key_a,
           primary_id_b,   primary_key_b,
         secondary_id_b, secondary_key_b
 
-        See https://api.purpleair.com/#api-sensors-get-sensor-data
-        '''
+        See {C.PURPLE}https://api.purpleair.com/#api-sensors-get-sensor-data{C.NO_COLOUR}
+        """
+
         return str_fieldInfo
 
     async def purpleAir_call(
@@ -527,6 +633,7 @@ class Persair:
 
         if self.args.fieldsList:
             print(self.sensorFields_print())
+            self.exit_withMessage("Returning to system", 0, 'info')
 
         d_data:sensorModel.persairResponse  = sensorModel.persairResponse()
 
