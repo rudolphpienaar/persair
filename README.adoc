@@ -1,0 +1,65 @@
+# persair
+
+# Abstract
+
+`persair` is a python command line client and module for interacting with the PurpleAir API. A set of convenience commands are also available in the `nushell` based `persair.nu` script. Typical functions provided include collecting information on specific sensors as well as checking on when a specific sensor last checked in to the Purple API servers. `persair` also offers convenient _sensor-group_ based operations, collecting data from a set of sensors in the PurpleAir network.
+
+This document describes the _Installation_ and _Use_ of `persair`.
+
+# Introduction
+
+PurpleAir is a community-owned system of sensors that measure particulate matter in the atmosphere. Sample data is uploaded to PurpleAir in real time and information is shown in a web-based geographic UI, allowing for close-to-realtime monitoring of air quality across the https://map.purpleair.com/[sensor network].
+
+Current and historical data from individual sensors can also be accessed from the https://api.purpleair.com[PurpleAir API] by any client application that is authenticated to the API service. Authentication is performed by using read and write "keys" available from the http://develop.purpleair.com[PurpleAir develop portal]. While these authentication keys are freely available, each call to the API carries a "cost" in "tokens" (different calls cost different "amounts"). While PurpleAir provides a number of tokens for free, once exhausted users need to purchase more tokens.
+
+Accessing the API for data from a given sensor requires not only read and write keys, but also somewhat sophisticated knowledge from a user to use a web-based API. In order to simplify this access, `persair` was created as a terminal-application that provides a simple command-line interface to interacting with the API. In addition to the application itself, several convenience functions are available in a `nushell` environment.
+
+In this document you will need to use a terminal application to run `persair`. Commands that you need to type in the terminal are show in source block:
+
+[source, console]
+----
+# This is a console "source" block. In this console, lines that start with
+# a "hash" (#) are considered comments and are for illustrative purposes.
+# Any console "commands" that should be typed into a terminal will appear
+# in a line of their own without a leading hash character. In the next line,
+# the "someCommand" is command to type, the "--withAFlag" is a command line
+# flag, and the "value" the value for that flag:
+someCommand --withAFlag value
+----
+
+# Installation
+
+Several installation steps are required to use `persair`, typical of most command line python applications. Usually these assume a "UNIX" (Linux or macOS) operating system, however instructions/pointers for Windows systems are also provided. The steps are:
+
+- install python (usually included by default on Linux and macOS);
+- create a python _virtual environment_ in which to install `persair`;
+- install `persair`
+- get/use PurpleAir API read/write keys.
+
+These steps are generally not complex, and are discussed next.
+
+## Extra credit
+
+While not _required_, it is also highly suggested to also install `nushell` as the command line interpreter in your terminal (see below). There are several convenience scripts offered by this repository that leverage the excellent JSON parsing and presentation abilities of `nushell`.
+
+## Linux and macOS
+
+UNIX type systems, including Linux and macOS, have Python already installed and available out of the box.
+
+## Windows
+
+Windows does not by default have a Python installation, but Python is available in the Microsoft Store. Please consult the store for installation.
+
+## Virtual Environment
+
+A Python _virtual environment_ is recommended for using `persair`.
+
+### Linux and macOS
+
+In Linux or macOS, in a terminal, type:
+
+
+
+
+
+
