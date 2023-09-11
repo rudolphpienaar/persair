@@ -27,6 +27,11 @@ def readme():
     with open('README.rst') as f:
         return f.read()
 
+requirements    = []
+with open('requirements.txt') as f:
+    requirements = [line.strip() for line in f.readlines() if line.strip() and not line.strip().startswith('#')]
+
+
 setup(
       name             =   'persair',
       version          =   get_version('persair/__main__.py'),
@@ -36,7 +41,7 @@ setup(
       author_email     =   'dev@babymri.org',
       url              =   'https://github.com/FNNDSC/persair',
       packages         =   ['persair', 'persair/config', 'persair/models'],
-      install_requires =   ['loguru', 'print-color', 'motor', 'aiopurpleair'],
+      install_requires =   requirements,
       entry_points={
           'console_scripts': [
               'persair = persair.__main__:main'
