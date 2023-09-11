@@ -32,96 +32,14 @@ someCommand --withAFlag value
 
 Several installation steps are required to use `persair`, typical of most command line python applications. Usually these assume a "UNIX" (Linux or macOS) operating system, however instructions/pointers for Windows systems are also provided. The steps are:
 
-- install python (usually included by default on Linux and macOS);
-- create a python _virtual environment_ in which to install `persair`;
-- install `persair`
-- get/use PurpleAir API read/write keys.
-
-These steps are generally not complex, and are discussed next.
+- https://github.com/rudolphpienaar/persair/wiki/01-%E2%80%90-Installation[install python (usually included by default on Linux and macOS)];
+- https://github.com/rudolphpienaar/persair/wiki/02-%E2%80%90%E2%80%90-Create-a-Python-Virtual-Environment[create a python _virtual environment_];
+- https://github.com/rudolphpienaar/persair/wiki/03-%E2%80%90%E2%80%90-Install-persair[install `persair`];
+- https://github.com/rudolphpienaar/persair/wiki/04-%E2%80%90%E2%80%90-PurpleAir-API-read-write-keys[get/use PurpleAir API read/write keys].
 
 ## Extra credit
 
-While not _required_, it is also highly _suggested_ to also install `nushell` as the command line interpreter in your terminal (see below). There are several convenience scripts offered by this repository that leverage the excellent JSON parsing and presentation abilities of `nushell`.
+While not _required_, it is also highly _suggested_ to also https://www.nushell.sh/book/installation.html[install `nushell`] as the command line interpreter in your terminal. There are several convenience scripts offered by this repository that leverage the excellent JSON parsing and presentation abilities of `nushell`.
 
-## Linux and macOS
-
-UNIX type systems, including Linux and macOS, have Python already installed and available out of the box.
-
-## Windows
-
-Windows typically does not by default have a Python installation, but Python is available in the Microsoft Store. Please consult the store for installation.
-
-Alternatively, Python can also be downloaded and installed from the official https://www.python.org/downloads/[Python website].
-
-## Virtual Environment
-
-A Python _virtual environment_ is recommended for using `persair`. A virtual environment allows you to isolate Python packages for different projects, which helps prevent conflicts between packages and ensures a clean environment for each Python project.
-
-The steps to create a virtual environment are largely the same in all operating systems, differing only in some syntax (Windows uses a backslash to separate directories in a terminal `\` while Linux and macOS use a forward slash `/`):
-
-- open a terminal;
-- navigate to (or _create_) a directory to contain the virtual environment;
-- run the python virtual environment creation command;
-- _activate_ the virtual environment;
-- use the `pip` (Preferred Installer Program) command to install `persair` and its dependencies.
-
-### Linux, macOS and Windows
-
-[source, shell]
-----
-# If you don't have a directory yet in which to create the
-# virtual environment, we suggest creating a parent and child
-# folder:
-
-# Go to your home directory
-cd ~
-
-# Make a directory (folder) to hold all your python virtual
-# environments
-mkdir penv
-
-# Enter that directory
-cd penv
-
-# And finally, create an environment for persair, here
-# caller pair:
-python -m venv pair
-----
-
-### _Activate_ the `pair` env
-
-[source, shell]
-----
-# In Linux and macOS:
-
-cd ~/
-source penv/pair/bin/activate
-
-# In Windows:
-cd ~
-penv\pair\Scripts\activate
-----
-
-In both cases, you will notice that your prompt has changed and should indicate `pair`.
-
-
-## Install `persair`
-
-Now you can finally install `persair`. In your terminal with the `pair` environment activated, simply do
-
-[source, shell]
-----
-pip install persair
-----
-
-and `persair` should now be installed. You can test this typing
-
-[source, shell]
-----
-persair --man
-----
-
-which should print a man(ual) page on the terminal.
-
-
+# Usage
 
