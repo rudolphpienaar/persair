@@ -35,7 +35,7 @@ setup(
       author           =   'FNNDSC',
       author_email     =   'dev@babymri.org',
       url              =   'https://github.com/FNNDSC/persair',
-      packages         =   ['persair', 'persair/lib', 'persair/config', 'persair/models'],
+      packages         =   ['persair', 'persair/config', 'persair/models'],
       install_requires =   ['loguru', 'print-color', 'motor', 'aiopurpleair'],
       entry_points={
           'console_scripts': [
