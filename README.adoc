@@ -24,6 +24,7 @@ In this document you will need to use a terminal application to run `persair`. C
 # in a line of their own without a leading hash character. In the next line,
 # the "someCommand" is command to type, the "--withAFlag" is a command line
 # flag, and the "value" the value for that flag:
+
 someCommand --withAFlag value
 ----
 
@@ -40,7 +41,7 @@ These steps are generally not complex, and are discussed next.
 
 ## Extra credit
 
-While not _required_, it is also highly suggested to also install `nushell` as the command line interpreter in your terminal (see below). There are several convenience scripts offered by this repository that leverage the excellent JSON parsing and presentation abilities of `nushell`.
+While not _required_, it is also highly _suggested_ to also install `nushell` as the command line interpreter in your terminal (see below). There are several convenience scripts offered by this repository that leverage the excellent JSON parsing and presentation abilities of `nushell`.
 
 ## Linux and macOS
 
@@ -48,18 +49,70 @@ UNIX type systems, including Linux and macOS, have Python already installed and 
 
 ## Windows
 
-Windows does not by default have a Python installation, but Python is available in the Microsoft Store. Please consult the store for installation.
+Windows typically does not by default have a Python installation, but Python is available in the Microsoft Store. Please consult the store for installation.
+
+Alternatively, Python can also be downloaded and installed from the official https://www.python.org/downloads/[Python website].
 
 ## Virtual Environment
 
-A Python _virtual environment_ is recommended for using `persair`.
+A Python _virtual environment_ is recommended for using `persair`. A virtual environment allows you to isolate Python packages for different projects, which helps prevent conflicts between packages and ensures a clean environment for each Python project.
 
-### Linux and macOS
+The steps to create a virtual environment are largely the same in all operating systems, differing only in some syntax (Windows uses a backslash to separate directories in a terminal `\` while Linux and macOS use a forward slash `/`):
 
-In Linux or macOS, in a terminal, type:
+- open a terminal;
+- navigate to a (or _create_) a directory to contain the virtual environment;
+- run the python virtual environment creation command;
+- _activate_ the virtual environment;
+- use the `pip` (Preferred Installer Program) command to install `persair` and its dependencies.
+
+### Linux, macOS and Windows
+
+[source, console]
+----
+# If you don't have a directory yet in which to create the
+# virtual environment, we suggest creating a parent and child
+# folder:
+
+# Go to your home directory
+cd ~
+
+# Make a directory (folder) to hold all your python virtual
+# environments
+mkdir penv
+
+# Enter that directory
+cd penv
+
+# And finally, create an environment for persair, here
+# caller pair:
+python -m venv pair
+----
+
+### _Activate_ the `pair` env
+
+[source, console]
+----
+# In Linux and macOS:
+
+cd ~/
+source penv/pair/bin/activate
+
+# In Windows:
+cd ~
+penv/pair/Scripts/activate
+----
+
+In both cases, you will notice that your prompt has changed and should indicate `pair`.
 
 
+## Install `persair`
 
+Now you can finally install `persair`. In your terminal with the `pair` environment activated, simply do
 
+[source, console]
+----
+pip install persair
+----
 
+and `persair` should now be installed!.
 
