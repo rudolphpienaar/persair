@@ -95,7 +95,7 @@ package_CLIself = '''
         [--sensorRefType sensor_index|sensor_id]                                \\
         [--sensorsAddFromFile <filename>]                                       \\
         [--sensorAddToGroup <sensorRef>]                                        \\
-        [--sensorsInGroupList <groupid>]                                        \\
+        [--sensorsInGroupList]                                                  \\
         [--usingGroupID <groupid>]                                              \\
         [--man]                                                                 \\
         [--version]'''
@@ -149,8 +149,8 @@ package_argSynopsisSelf = f"""
         --usingGroupID. References in the <filename> should only contain
         a single sensor per line.
 
-        [--sensorsInGroupList <groupid>]
-        List all sensors in <groupid>.
+        [--sensorsInGroupList]
+        For a given --usingGroupID, list all the sensors. 
 
         [--usingGroupID <groupid>]
         CLI for additionally specifying a <groupid> to use in conjunction
