@@ -16,11 +16,11 @@ Accessing the API for data from a given sensor requires not only read and write 
 
 In this document you will need to use a terminal application to run `persair`. Commands that you need to type in the terminal are show in source block:
 
-[source, console]
+[source, shell]
 ----
-# This is a console "source" block. In this console, lines that start with
+# This is a shell "source" block. In this shell, lines that start with
 # a "hash" (#) are considered comments and are for illustrative purposes.
-# Any console "commands" that should be typed into a terminal will appear
+# Any shell "commands" that should be typed into a terminal will appear
 # in a line of their own without a leading hash character. In the next line,
 # the "someCommand" is command to type, the "--withAFlag" is a command line
 # flag, and the "value" the value for that flag:
@@ -67,7 +67,7 @@ The steps to create a virtual environment are largely the same in all operating 
 
 ### Linux, macOS and Windows
 
-[source, console]
+[source, shell]
 ----
 # If you don't have a directory yet in which to create the
 # virtual environment, we suggest creating a parent and child
@@ -90,7 +90,7 @@ python -m venv pair
 
 ### _Activate_ the `pair` env
 
-[source, console]
+[source, shell]
 ----
 # In Linux and macOS:
 
@@ -109,7 +109,7 @@ In both cases, you will notice that your prompt has changed and should indicate 
 
 Now you can finally install `persair`. In your terminal with the `pair` environment activated, simply do
 
-[source, console]
+[source, shell]
 ----
 pip install persair
 ----
