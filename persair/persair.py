@@ -83,11 +83,12 @@ description:str = f"""
 
 package_CLIself = '''
         [--keyStore <key.json>]                                                 \\
+        [--projectName <name>]                                                  \\
         [--readKey <readkey>]                                                   \\
         [--writeKey <writekey>]                                                 \\
         [--sensorDataGet <sensorRef>]                                           \\
         [--fieldsList]                                                          \\
-        [fields <comma,separated,list>]                                         \\
+        [--fields <comma,separated,list>]                                       \\
         [--asHistory | --asHistoryCSV]                                          \\
         [--start_timestamp <%Y-%m-%d>]                                          \\
         [--end_timestamp <%Y-%m-%d>]                                            \\
@@ -122,8 +123,9 @@ package_argSynopsisSelf = f"""
         If specified, print information about the fields can be passed to the
         "fields" parameter.
 
-        [fields <comma,separated,list>]
-        A comma separated list of field data to retrieve.
+        [--fields <comma,separated,list>]
+        A comma separated list of field data to retrieve. Useful if you only want
+        a specific measurement and don't want the bloat (and cost) of all the data.
 
         [--asHistory | --asHistoryCSV]
         If specified, do a "history" retrieve (optionally as CSV data)
