@@ -43,3 +43,33 @@ While not _required_, it is also highly _suggested_ to also https://www.nushell.
 
 # Usage
 
+`persair` will faithfully return the reponses from the PurpleAIR API without any embellishments. This might not always be immediately useful. For instance, dates are returned as UNIX epochs, not as more standard date strings. It it highly recommended to use the companion `nushell` documentation for more human friendly returns!
+
+## Get a list of all sensor in a group
+
+If your sensors have all been placed into a group with id, say `1700`, you can get a list of all sensor indices with
+
+[source, shell]
+----
+# Remember to set the read/write keys in the environment first!
+
+persair --sensorsInGroupList --usingGroupID 1700
+----
+
+This will return a JSON object with all the sensor indices in the terminal.
+
+## Get data from a specific sensor
+
+[source, shell]
+----
+persair --sensorDataGet 128999
+----
+
+Which again will return a JSON object.
+
+### Get only the date `last_seen`:
+
+[source, shell]
+----
+persair --sensorDataGet 128999 --fields last_seen
+----
