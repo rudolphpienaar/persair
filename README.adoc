@@ -60,7 +60,7 @@ A Python _virtual environment_ is recommended for using `persair`. A virtual env
 The steps to create a virtual environment are largely the same in all operating systems, differing only in some syntax (Windows uses a backslash to separate directories in a terminal `\` while Linux and macOS use a forward slash `/`):
 
 - open a terminal;
-- navigate to a (or _create_) a directory to contain the virtual environment;
+- navigate to (or _create_) a directory to contain the virtual environment;
 - run the python virtual environment creation command;
 - _activate_ the virtual environment;
 - use the `pip` (Preferred Installer Program) command to install `persair` and its dependencies.
@@ -99,7 +99,7 @@ source penv/pair/bin/activate
 
 # In Windows:
 cd ~
-penv/pair/Scripts/activate
+penv\pair\Scripts\activate
 ----
 
 In both cases, you will notice that your prompt has changed and should indicate `pair`.
@@ -114,5 +114,14 @@ Now you can finally install `persair`. In your terminal with the `pair` environm
 pip install persair
 ----
 
-and `persair` should now be installed!.
+and `persair` should now be installed. You can test this typing
+
+[source, shell]
+----
+persair --man
+----
+
+which should print a man(ual) page on the terminal.
+
+
 
