@@ -42,6 +42,7 @@ setup(
       url              =   'https://github.com/FNNDSC/persair',
       packages         =   ['persair', 'persair/config', 'persair/models'],
       install_requires =   requirements,
+      package_data={'': ['requirements.txt']},
       entry_points={
           'console_scripts': [
               'persair = persair.__main__:main'
