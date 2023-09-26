@@ -150,7 +150,7 @@ package_argSynopsisSelf = f"""
         a single sensor per line.
 
         [--sensorsInGroupList]
-        For a given --usingGroupID, list all the sensors. 
+        For a given --usingGroupID, list all the sensors.
 
         [--usingGroupID <groupid>]
         CLI for additionally specifying a <groupid> to use in conjunction
