@@ -24,13 +24,22 @@ def response_checkForError [
 
 # The interface/call to the persair app that communicates with
 # the PurpleAir API to get sensor data for a given sensor.
+def persair_sensorDataGet_fields [
+    idx:int	# The index of the sensor in the purpleair DB.
+    fields:string # Comma separated fileds string
+] {
+    (response_checkForError (persair --sensorDataGet $idx --fields $fields| from json))
+}
+
+# The interface/call to the persair app that communicates with
+# the PurpleAir API to get sensor data for a given sensor.
 def persair_sensorDataGet [
     idx:int	# The index of the sensor in the purpleair DB.
 ] {
     (response_checkForError (persair --sensorDataGet $idx | from json))
 }
 
-# The interface/call to the persair app that communicates with
+# The interface/call to the persair app tha$t communicates with
 # the PurpleAir API to get the list of sensors in a group.
 def persair_sensorsInGroupList [
     group:int	# The ID of the sensor group in the purpleair DB.
@@ -45,6 +54,14 @@ def sensor_dataGet [
     idx:int # The index of the sensor
 ] {
     persair_sensorDataGet $idx
+}
+
+# Convenience function to get a sensor data field
+def sensor_dataGet_field [
+    idx:int # The index of the sensor
+    field:string # Field to get
+] {
+    persair_sensorDataGet_fields $idx $field | get response | get sensor | get $field
 }
 
 # Get the date a given sensor most recently checked in with purpleair
@@ -82,7 +99,7 @@ def sensor_daysLastSeen [
         format duration day                     |
         parse '{days} {unit}'                   |
         get days                                |
-        into decimal
+        into float
     )
     return ($dist.0)
 }
@@ -94,9 +111,10 @@ def sensorsInGroup_daysLastSeen [
 ] {
     sensorsInGroup_list $group| get sensor_index | each {
         |it| [
-            [sensor last_seen];
+            [sensor last_seen name];
             [   ($"($it)" | fill -a right -c ' ' -w 10)
                 (sensor_daysLastSeen $it)
+                (sensor_dataGet_field $it name)
             ]
         ]
     } | flatten
